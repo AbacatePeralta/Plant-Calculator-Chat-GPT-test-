@@ -4,26 +4,86 @@
   <meta charset="UTF-8">
   <title>Calculadora de Plantas</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
-    label { display: block; margin: 10px 0 5px; }
-    input { width: 100%; padding: 5px; }
-    button { margin-top: 15px; padding: 10px; width: 100%; }
-    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      background: #f8f9fa;
+      color: #333;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin: 8px 0 4px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #219150;
+    }
+    .best {
+      background: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .other {
+      background: #f1f1f1;
+      border-left: 5px solid #bbb;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <h1>Calculadora de Plantas</h1>
-  <label for="slots">Número de slots:</label>
-  <input type="number" id="slots" value="15" min="1">
+  <h1>Calculadora de Plantas 🌱</h1>
 
-  <h2>Preços de Venda</h2>
-  <div id="plant-inputs"></div>
+  <div class="card">
+    <label for="slots">Número de slots:</label>
+    <input type="number" id="slots" value="15" min="1">
 
-  <button onclick="calcular()">Calcular Melhor Planta</button>
-  <h2>Resultado</h2>
-  <pre id="resultado"></pre>
+    <h2>Preços de Venda</h2>
+    <div id="plant-inputs"></div>
+
+    <button onclick="calcular()">Calcular Melhor Planta</button>
+  </div>
+
+  <div class="card">
+    <h2>Resultado</h2>
+    <div id="resultado"></div>
+  </div>
 
   <script>
+    // === Base de dados ===
     const plants = {
       "Trigo": { buy: 5, grow_s: 22 },
       "Batata": { buy: 10, grow_s: 22 },
@@ -38,12 +98,14 @@
       "Milho": { buy: 150, grow_s: 60 }
     };
 
+    // Cria os campos para digitar preços
     const container = document.getElementById("plant-inputs");
     Object.keys(plants).forEach(name => {
       const label = document.createElement("label");
       label.innerText = `${name} (preço de venda):`;
       const input = document.createElement("input");
       input.type = "number";
+      input.step = "0.01";
       input.id = `price-${name}`;
       container.appendChild(label);
       container.appendChild(input);
@@ -53,28 +115,36 @@
       const slots = parseInt(document.getElementById("slots").value);
       let results = [];
 
+      // Calcula lucro e taxa de cada planta
       for (const [name, data] of Object.entries(plants)) {
         const sale = parseFloat(document.getElementById(`price-${name}`).value);
-        if (!sale) continue;
+        if (!sale) continue; // ignora plantas sem preço
         const profit = sale - data.buy;
         const rate = profit / data.grow_s;
         results.push({ name, profit, rate, grow: data.grow_s });
       }
 
       if (results.length === 0) {
-        document.getElementById("resultado").innerText = "Preencha pelo menos um preço!";
+        document.getElementById("resultado").innerHTML =
+          "<p style='color:red;'>⚠️ Digite pelo menos um preço para calcular!</p>";
         return;
       }
 
-      const maxRate = Math.max(...results.map(r => r.rate));
-      const best = results.filter(r => r.rate === maxRate);
+      // Ordena do maior para o menor
+      results.sort((a, b) => b.rate - a.rate);
+      const maxRate = results[0].rate;
 
-      let out = "=== MELHORES PLANTAS ===\n";
-      best.forEach(r => {
-        out += `⭐ ${r.name} | Lucro por ciclo: ${r.profit}$ | Tempo: ${r.grow}s | Taxa: ${(r.rate).toFixed(6)}$/s/slot\n`;
+      let html = "<h3>Melhores plantas:</h3>";
+      results.forEach(r => {
+        const isBest = r.rate === maxRate;
+        html += `<div class="${isBest ? "best" : "other"}">
+                  ${isBest ? "⭐ " : ""}<b>${r.name}</b> — 
+                  Lucro: ${r.profit}$ | Tempo: ${r.grow}s | 
+                  Taxa: ${(r.rate).toFixed(6)} $/s/slot
+                 </div>`;
       });
 
-      document.getElementById("resultado").innerText = out;
+      document.getElementById("resultado").innerHTML = html;
     }
   </script>
 </body>
