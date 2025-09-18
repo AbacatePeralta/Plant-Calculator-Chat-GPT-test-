@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Plantas</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+    label { display: block; margin: 10px 0 5px; }
+    input { width: 100%; padding: 5px; }
+    button { margin-top: 15px; padding: 10px; width: 100%; }
+    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Calculadora de Plantas</h1>
+  <label for="slots">Número de slots:</label>
+  <input type="number" id="slots" value="15" min="1">
+
+  <h2>Preços de Venda</h2>
+  <div id="plant-inputs"></div>
+
+  <button onclick="calcular()">Calcular Melhor Planta</button>
+  <h2>Resultado</h2>
+  <pre id="resultado"></pre>
+
+  <script>
+    const plants = {
+      "Trigo": { buy: 5, grow_s: 22 },
+      "Batata": { buy: 10, grow_s: 22 },
+      "Maçã": { buy: 10, grow_s: 24 },
+      "Tomate": { buy: 40, grow_s: 30 },
+      "Parsnip": { buy: 40, grow_s: 30 },
+      "Mirtilo": { buy: 60, grow_s: 60 },
+      "BananaTree": { buy: 60, grow_s: 60 },
+      "Cenoura": { buy: 60, grow_s: 60 },
+      "Pessego": { buy: 150, grow_s: 60 },
+      "Morango": { buy: 150, grow_s: 60 },
+      "Milho": { buy: 150, grow_s: 60 }
+    };
+
+    const container = document.getElementById("plant-inputs");
+    Object.keys(plants).forEach(name => {
+      const label = document.createElement("label");
+      label.innerText = `${name} (preço de venda):`;
+      const input = document.createElement("input");
+      input.type = "number";
+      input.id = `price-${name}`;
+      container.appendChild(label);
+      container.appendChild(input);
+    });
+
+    function calcular() {
+      const slots = parseInt(document.getElementById("slots").value);
+      let results = [];
+
+      for (const [name, data] of Object.entries(plants)) {
+        const sale = parseFloat(document.getElementById(`price-${name}`).value);
+        if (!sale) continue;
+        const profit = sale - data.buy;
+        const rate = profit / data.grow_s;
+        results.push({ name, profit, rate, grow: data.grow_s });
+      }
+
+      if (results.length === 0) {
+        document.getElementById("resultado").innerText = "Preencha pelo menos um preço!";
+        return;
+      }
+
+      const maxRate = Math.max(...results.map(r => r.rate));
+      const best = results.filter(r => r.rate === maxRate);
+
+      let out = "=== MELHORES PLANTAS ===\n";
+      best.forEach(r => {
+        out += `⭐ ${r.name} | Lucro por ciclo: ${r.profit}$ | Tempo: ${r.grow}s | Taxa: ${(r.rate).toFixed(6)}$/s/slot\n`;
+      });
+
+      document.getElementById("resultado").innerText = out;
+    }
+  </script>
+</body>
+</html>
